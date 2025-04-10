@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// datasource db {
+//   provider  = "postgresql"
+//   url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+//   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+// }
+
+// enums
+enum ChapterType {
+  Text
+  Quiz
+  Video
+}
+
+enum Level {
+  Beginner
+  Intermediate
+  Advanced
+}
+
+enum Status {
+  Draft
+  Published
+}
+
+enum PaymentProvider {
+  stripe
+}
+
+// Comment Model
+model Comment {
+  id        String  @id @default(uuid())
+  chapter   Chapter @relation(fields: [chapterId], references: [id])
+  chapterId String
+  userId    String
+  text      String
+  timestamp String
+}
+
+// Chapter Model
+model Chapter {
+  id        String      @id @default(uuid())
+  section   Section     @relation(fields: [sectionId], references: [id])
+  sectionId String
+  type      ChapterType
+  title     String
+  content   String
+  video     String?
+  comments  Comment[]
+}
+
+// Section Model
+model Section {
+  id                 String    @id @default(uuid())
+  course             Course    @relation(fields: [courseId], references: [id])
+  courseId           String
+  sectionTitle       String
+  sectionDescription String?
+  chapters           Chapter[]
+}
+
+// Enrollment Model
+model Enrollment {
+  id       String @id @default(uuid())
+  userId   String
+  course   Course @relation(fields: [courseId], references: [id])
+  courseId String
+}
+
+// Course Model
+model Course {
+  id          String        @id
+  teacherId   String
+  teacherName String
+  title       String
+  description String?
+  category    String
+  image       String?
+  price       Float?
+  level       Level
+  status      Status
+  sections    Section[]
+  enrollments Enrollment[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  Transaction Transaction[]
+}
+
+// Transaction Model
+model Transaction {
+  userId          String
+  transactionId   String
+  dateTime        String
+  courseId        String
+  course          Course?         @relation(fields: [courseId], references: [id])
+  paymentProvider PaymentProvider
+  amount          Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, transactionId])
+  @@index([courseId], name: "CourseTransactionsIndex")
+}
+
+// UserCourseProgress Model
+model UserCourseProgress {
+  userId                String
+  courseId              String
+  enrollmentDate        String
+  overallProgress       Float
+  lastAccessedTimestamp String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  sections UserSectionProgress[]
+
+  @@id([userId, courseId])
+}
+
+// UserSectionProgress Model
+model UserSectionProgress {
+  id        String @id @default(uuid())
+  sectionId String
+
+  userId   String
+  courseId String
+  progress UserCourseProgress @relation(fields: [userId, courseId], references: [userId, courseId])
+
+  chapters UserChapterProgress[]
+}
+
+// UserChapterProgress Model
+model UserChapterProgress {
+  id        String              @id @default(uuid())
+  chapterId String
+  completed Boolean
+  section   UserSectionProgress @relation(fields: [sectionId], references: [id])
+  sectionId String
+}
