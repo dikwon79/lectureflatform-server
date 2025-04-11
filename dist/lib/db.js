@@ -1,15 +1,9 @@
 "use strict";
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-// db.ts
 const client_1 = require("@prisma/client");
-let db;
-if (process.env.NODE_ENV === "production") {
-    db = new client_1.PrismaClient();
-}
-else {
-    if (!global.db) {
-        global.db = new client_1.PrismaClient();
-    }
-    db = global.db;
-}
+const globalForPrisma = global;
+const db = (_a = globalForPrisma.prisma) !== null && _a !== void 0 ? _a : new client_1.PrismaClient({});
+if (process.env.NODE_ENV !== "production")
+    globalForPrisma.prisma = db;
 exports.default = db;

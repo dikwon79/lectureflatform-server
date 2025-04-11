@@ -5,6 +5,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 
+import courseRoutes from "./routes/courseRouters";
 /* ROUTE IMPORTS */
 
 /* CONFIGURATIONS */
@@ -29,6 +30,8 @@ app.use(cors());
 app.get("/", (req, res) => {
   res.send("hello world");
 });
+
+app.use("/courses", courseRoutes);
 
 const port = process.env.PORT || 3000;
 if (!isProduction) {
